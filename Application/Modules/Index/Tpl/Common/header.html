@@ -1,0 +1,109 @@
+<div class="stepFour" style="display:none;border:1px solid #ccc;position:fixed;left:25%;z-index:10;">
+	<div class="middleContent">
+		<p class="topTitle">
+			<span><img src="__PUBLIC__/images/newimg/carlogo.png" alt=""></span>
+			<span class="chooseCar">选择车型</span>
+			<a href="javascript:;" class="closeBtn4 closeBtn1_cloose">
+				<img src="__PUBLIC__/images/newimg/closeBtn.png" alt="">
+			</a>
+		</p>
+		<p class="stepFourLogo"></p>
+
+		<ul class="brandZiMu">
+			<span class="brandNumBiao">已选车型 : </span>
+			<li><span><span class="userChooseBrand"></span><a href="javascript:;" class="closeBrand2">x</a></span></li>
+			<li><span><span class="chooseXilie"></span><a href="javascript:;" class="closeBrand3">x</a></span></li>
+			<li><span><span class="chooseCarType"></span><a href="javascript:;" class="closeBrand4">x</a></span></li>
+		</ul>
+
+		<ul class="carLogo years">
+		</ul>
+	</div>
+	
+</div>
+
+
+<script type="text/javascript">
+	function styleyears(styleid,pinpai,model){
+		//查询车型年款
+		var tbody = ""; 
+		$.post("{:U('/index.php/index/Index/getstyleyears')}",{styleid:styleid,pinpai:pinpai,model:model},function(data){
+			if(data){
+				$(".chooseCar").append("<input type='hidden' class='style_id_hidden' value='"+styleid+"'>");
+				var cityid=$(".hidden_city_id").val();
+				var hidden_city_region_name=$(".hidden_city_region_name").val();
+				$.each(data['style']['0']['years'],function(n,value) {  
+				$style_id=data['style']['0']['id'];
+					var trs = "";
+					trs +="<li><a href='__ROOT__/add_mycar_info/"+$style_id+"'>" +value+"</a></li>"
+					tbody += trs;  
+				})
+				
+				$(".carLogo.years li").remove(); 
+				$(".carLogo.years").append(tbody);
+			}
+		})
+	}
+	$(function(){
+		$(".closeBtn").click(function(){
+			$(this).parent().parent().parent().fadeOut('slow/400/fast');
+		});
+		$(".carLogo li").click(function(){
+			if($(this).find("span").hasClass('toggleClick')){
+				$(this).find("span").removeClass('toggleClick');
+			}else{
+				$(this).find("span").addClass('toggleClick').parent().siblings("li").find('span').removeClass('toggleClick');
+			}
+			var value = $(this).find('span').text()
+				// alert(value);
+			$(".chooseXilie").val();
+
+		});
+		$(".closeBrand4").click(function(){
+			// $(this).parent().parent().remove();
+			$(".stepFour").css({
+				"display": 'none'
+			});
+			$(".stepThree").css({
+				"display": 'block'
+			});
+			$(".stepTwo").css({
+				"display": 'none'
+			});
+			$(".stepOne").css({
+				"display": 'none'
+			});
+		});
+		$(".closeBrand3").click(function(){
+			// $(this).parent().parent().remove();
+			$(".stepFour").css({
+				"display": 'none'
+			});
+			$(".stepThree").css({
+				"display": 'none'
+			});
+			$(".stepTwo").css({
+				"display": 'block'
+			});
+			$(".stepOne").css({
+				"display": 'none'
+			});
+		});
+		$(".closeBrand2").click(function(){
+			// $(this).parent().parent().remove();
+			$(".stepFour").css({
+				"display": 'none'
+			});
+			$(".stepThree").css({
+				"display": 'none'
+			});
+			$(".stepTwo").css({
+				"display": 'none'
+			});
+			$(".stepOne").css({
+				"display": 'block'
+			});
+		});
+
+	})
+</script>

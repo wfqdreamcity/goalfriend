@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<META http-equiv="X-UA-Compatible" content="IE=9" > </META>
+<title>球友</title>
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link href="../Public/chenvxu2.0/css/layout_1yangCar.css" type="text/css" rel="stylesheet" />
+    <link href="../Public/chenvxu2.0/css/demo.css" type="text/css" rel="stylesheet" /> 
+    <link href="../Public/chenvxu2.0/css/layout3.0.css" type="text/css" rel="stylesheet" /> 
+    <style type="text/css">
+    
+    html {
+  background-color: #fff;
+}
+
+    </style>
+    <script <script type="text/javascript" src="../Public/chenvxu2.0/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../Public/chenvxu2.0/js/buyCar.js"></script>
+    <script type="text/javascript">
+
+/*------------------发送验证倒计时-------------------------*/
+
+var InterValObj; //timer变量，控制时间
+var count = 60; //间隔函数，1秒执行
+var curCount;//当前剩余秒数
+var code = ""; //验证码
+var codeLength = 6;//验证码长度
+function sendMessage() {
+            curCount = count;
+            var dealType; //验证方式
+var uid=$("#uid").val();//用户uid
+if ($("#phone").attr("checked") == true) {
+                dealType = "phone";
+            }
+            else {
+                dealType = "email";
+            }
+            //产生验证码
+for (var i = 0; i < codeLength; i++) {
+                code += parseInt(Math.random() * 9).toString();
+            }
+            //设置button效果，开始计时
+                $("#btnSendCode").attr("disabled", "true");
+                $("#btnSendCode").val(curCount + "秒内输入验证码");
+                InterValObj = window.setInterval(SetRemainTime, 1000); //启动计时器，1秒执行一次
+//向后台发送处理数据
+                $.ajax({
+                    type: "POST", //用POST方式传输
+                    dataType: "text", //数据格式:JSON
+                    url: 'Login.ashx', //目标地址
+                    data: "dealType=" + dealType +"&uid=" + uid + "&code=" + code,
+                    error: function (XMLHttpRequest, textStatus, errorThrown) { },
+                    success: function (msg){ }
+                });
+            }
+        //timer处理函数
+function SetRemainTime() {
+            if (curCount == 0) {                
+                window.clearInterval(InterValObj);//停止计时器
+                $("#btnSendCode").removeAttr("disabled");//启用按钮
+                $("#btnSendCode").val("重新发送验证码");
+                code = ""; //清除验证码。如果不清除，过时间后，输入收到的验证码依然有效    
+            }
+            else {
+                curCount--;
+                $("#btnSendCode").val(curCount + "秒内输入验证码");
+            }
+        }
+/*------------------发送验证倒计时结束-------------------------*/	
+	  
+
+		
+    </script>
+    </head>
+
+    <body>
+
+<!--header-->
+
+<div class="Header_Three0">
+  <ul>
+    <li class="left_Three0"><a href="javascript:history.go(-1)"><img src="../Public/chenvxu2.0/images/order_02.png" /></a></li>
+    <li class="middle_Three0">
+      <p>用户注册</p>
+    </li>
+    <li style="clear:both"></li>
+  </ul>
+ </div>
+<!--/header--> 
+
+<!--bodyer--> 
+<div class="order_1" >
+  <div class="box">
+    <div style="position:relative;">
+      <div class="details2_tab2">
+        <ul>
+          <li class="li_s3"> <span>手机号：</span>
+            <input type="text" placeholder="输入手机号码" maxlength="11" name="tel">
+          </li>
+			   <li  class="li_s3"> <span>输入密码：</span>
+                <input type="password" placeholder="输入密码"  name="passwd1">
+              </li>
+			   <li  class="li_s3"> <span>确认密码：</span>
+                <input type="password" placeholder="再次输入密码"  name="passwd2">
+              </li>
+              <li  class="li_s3"> <span>验证码：</span>
+                <input type="text" placeholder="输入验证码" maxlength="6" name="code">
+              </li>
+             
+              <li  class="li_s5">
+                 <input id="btnSendCode" type="button" value="发送验证码" style="-webkit-appearance: none;"/>
+              </li>
+               <li  class="li_s6">
+                <input type="button" name="login" value="登录" class="login" style="-webkit-appearance: none;"/>
+              </li>
+              
+              
+             
+            <li class="clears"> <!--<p class="tishi">输入正确的手机号码，点击发送验证码按钮并输入后即可登录。</p>--></li>
+        </ul>
+      </div>
+     
+    
+    </div>
+  </div>
+</div>
+<script>
+url ='<?php echo $url; ?>';
+console.log(url);
+$("#btnSendCode").click(function(){
+	var tel =$("input[name=tel]").val();
+	if(tel==''){
+		alert("电话号码不能为空!");
+	}else{
+	    sendMessage();
+		$.post("{:U('Mobile/user/sendCode')}",{mobile:tel},function(data){
+			console.log(data);
+		})
+	}
+})
+$(".login").click(function(){
+	var tel =$("input[name=tel]").val();
+	var code =$("input[name=code]").val();
+	if(code==''){
+		alert("验证码不能为空!");
+	}else{
+		$.post("{:U('Mobile/user/validate')}",{mobile:tel,code:code},function(data){
+		    if(data==1){
+				//自动登入
+				$.post("{:U('Mobile/user/LoginAuth')}",{mobile:tel},function(data){
+					//location.href="javascript:history.back(-1)";
+					location.href=url;
+				})
+			}else{
+				alert("验证码错误!");
+			}
+		})
+	}
+})
+</script>
+<!--/bodyer--> 
+<!--footer3-->
+<!--/footer3-->
+
+</body>
+</html>
