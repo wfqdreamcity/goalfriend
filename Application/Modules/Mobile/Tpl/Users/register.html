@@ -101,6 +101,9 @@ function SetRemainTime() {
           <li class="li_s3"> <span>手机号：</span>
             <input type="text" placeholder="输入手机号码" maxlength="11" name="tel">
           </li>
+		  <li class="li_s3"> <span>昵称：</span>
+            <input type="text" placeholder="请输入昵称" maxlength="50" name="nickname">
+          </li>
 			   <li  class="li_s3"> <span>输入密码：</span>
                 <input type="password" placeholder="输入密码"  name="passwd1">
               </li>
@@ -137,26 +140,44 @@ $("#btnSendCode").click(function(){
 		alert("电话号码不能为空!");
 	}else{
 	    sendMessage();
-		$.post("{:U('Mobile/user/sendCode')}",{mobile:tel},function(data){
+		$.post("{:U('Mobile/users/sendCode')}",{mobile:tel},function(data){
 			console.log(data);
+			if(data=='fail'){
+				alert("发送失败!");
+			}
 		})
 	}
 })
 $(".login").click(function(){
 	var tel =$("input[name=tel]").val();
 	var code =$("input[name=code]").val();
-	if(code==''){
+	var passwd1 =$("input[name=passwd1]").val();
+	var passwd2 =$("input[name=passwd2]").val();
+	var nickname =$("input[name=nickname]").val();
+	if(tel==''){
+		alert("手机号不能为空!");
+	}else if(nickname==''){
+		alert("请输入昵称!");
+	}else if(passwd1=='' || passwd2=='' || passwd1.length<6){
+		alert("密码不能为空或不能少于六位!");
+	}else if(passwd1!=passwd2){
+		alert("密码验证错误!");
+	}else if(code==''){
 		alert("验证码不能为空!");
 	}else{
-		$.post("{:U('Mobile/user/validate')}",{mobile:tel,code:code},function(data){
-		    if(data==1){
-				//自动登入
-				$.post("{:U('Mobile/user/LoginAuth')}",{mobile:tel},function(data){
-					//location.href="javascript:history.back(-1)";
-					location.href=url;
-				})
+		$.post("{:U('Mobile/users/registerAjax')}",{
+													mobile:tel,
+													code:code,
+													passwd1:passwd1,
+													passwd2:passwd2,
+													nickname:nickname
+											       },function(data){
+			var data = jQuery.parseJSON(data); 
+			console.log(data);
+		    if(data.code=="2000"){
+					location.href="{:U('Mobile/users/login')}";
 			}else{
-				alert("验证码错误!");
+				 alert(data.msg);
 			}
 		})
 	}

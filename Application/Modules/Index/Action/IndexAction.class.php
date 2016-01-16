@@ -5,8 +5,8 @@ Class IndexAction extends CommonAction{
 	
 	public function index(){
 		
-		
-		$this->display();
+		echo "goalfriend index page!!";
+		//$this->display();
 	}
 	
 	//获取token

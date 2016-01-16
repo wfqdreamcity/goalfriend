@@ -23,11 +23,12 @@ Class UsersAction extends CommonAction{
 		}
 		
 		//get users' info
-		
+		$this->userInfo =$_SESSION['users'];
 		$this->display();
 		
-		echo "login success!";
-		p($_SESSION);
+		//echo "login success!";
+		
+		//p($_SESSION);
 	}
 	
 	//login page
@@ -106,18 +107,23 @@ Class UsersAction extends CommonAction{
 		$openid=$_SESSION['openid'];
 		$access_token =$this->getAccessToken($username);
 		
-		$data['openID']=$openid;
-		//$data['Username']=$username;
+		//如果该微信号已经绑定了则不能从新绑定
+		$condition1['openid']=$openid;
+		$list =M("access_token")->where($condition1)->find();
+		if(!$list){
 		
-		$post =$this->arrChangeToString($data);
-		//球友绑定openid
-		$result =$this->https_request_post($url,$post,$access_token);
-		
-		//微信端绑定openid
-		$dataArr['openid']=$openid;
-		$condition['username']=$username;
-		M("access_token")->where($condition)->save($dataArr);
-		
+			$data['openID']=$openid;
+			//$data['Username']=$username;
+			
+			$post =$this->arrChangeToString($data);
+			//球友绑定openid
+			$result =$this->https_request_post($url,$post,$access_token);
+			
+			//微信端绑定openid
+			$dataArr['openid']=$openid;
+			$condition['username']=$username;
+			M("access_token")->where($condition)->save($dataArr);
+		}
 		//$result=json_decode($result,true);
 		//$_SESSION['correlation']=$result;
 		
@@ -146,6 +152,11 @@ Class UsersAction extends CommonAction{
 					$msg=$res;
 			   }
 			}
+			if($code=="fail"){
+				echo $code;
+				echo $msg;
+				sleep(3);
+			}
 		}
 	}
 	
@@ -154,10 +165,38 @@ Class UsersAction extends CommonAction{
 		$this->display();
 	}
 	public function registerAjax(){
-		$username=I("post.username");
-		$passwd=I("post.passwd");
+		$url =$this->url_user."api/Account/Register";
+		$data['phoneNumber']=I("post.mobile");
+		$data['password']=I("post.passwd1");
+		$data['confirmPassword']=I("post.passwd2");
+		$data['nickname']=I("post.nickname");
+		$data['verifyCode']=I("post.code");
 		
-		p($username);
+		$post =$this->arrChangeToString($data);
+		
+		$result =$this->https_request_basic($url,$post);
+		
+		echo $result;
+		//$result =json_decode($result,true);
+	}
+	//发送短信验证码
+	public function sendCode(){
+		$url =$this->url_user."api/Account/RequestVerifyCode";
+		$data['mobile']=I("post.mobile");
+		
+		//$data['mobile']='15117950233';
+		
+		$post =$this->arrChangeToString($data);
+		
+		$result =$this->https_request_basic($url,$post);
+		
+		$result =json_decode($result,true);
+	
+		if($result['code']=='2000'){
+			echo "ok";
+		}else{
+			echo "fail";
+		}
 	}
 	
 	//获取access_token
@@ -237,9 +276,14 @@ Class UsersAction extends CommonAction{
 				$dataArr['time']=time()+$result['expires_in'];
 				
 				M("access_token")->where($condition)->save($dataArr);
-				
+			
 				return $result;
+			}else{
+				//重新绑定删除原纪录
+				$condition1['openid']=$_SESSION['openid'];
+				M("access_token")->where($condition1)->delete();
 			}
+
 		}
 		
 		//重新获取access_token
@@ -264,6 +308,24 @@ Class UsersAction extends CommonAction{
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, $url);
 		curl_setopt($ch,CURLOPT_HEADER,0);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+		if (!empty($data)){
+			curl_setopt($curl, CURLOPT_POST, 1);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+		}
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$result = curl_exec($curl);
+		curl_close($curl);
+		return $result;
+	}
+	public function https_request_basic($url, $data = null){
+		$curl = curl_init();
+		$username="WeChatServer";
+		$password="Luyu1990";
+		$baseCode =base64_encode($username.":".$password);
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, Array("Authorization: Basic ".$baseCode));		
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
 		if (!empty($data)){
@@ -330,6 +392,7 @@ Class UsersAction extends CommonAction{
 				//Header("Location: selectcombo");
 				$this->redirect('Mobile/Users/index');				
 			 }
+			 exit;
 		}
 	 }
 	 
